@@ -1,0 +1,48 @@
+{
+  "capability": "look_up_member_12345_and_read_their_current_saving",
+  "timestamp": "20261007_025846",
+  "steps": [
+    {
+      "step_id": 1,
+      "action": "type",
+      "description": "I see a login page. I need to enter credentials.",
+      "outcome": "success",
+      "url": "http://127.0.0.1:5000/"
+    },
+    {
+      "step_id": 2,
+      "action": "type",
+      "description": "Now I enter the password.",
+      "outcome": "success",
+      "url": "http://127.0.0.1:5000/"
+    },
+    {
+      "step_id": 3,
+      "action": "click",
+      "description": "Click the Log On button to submit credentials.",
+      "outcome": "success",
+      "url": "http://127.0.0.1:5000/"
+    },
+    {
+      "step_id": 4,
+      "action": "type",
+      "description": "I am on the search page. I will enter the member ID.",
+      "outcome": "success",
+      "url": "http://127.0.0.1:5000/search"
+    },
+    {
+      "step_id": 5,
+      "action": "click",
+      "description": "Click Search to find the member.",
+      "outcome": "success",
+      "url": "http://127.0.0.1:5000/search"
+    },
+    {
+      "step_id": 6,
+      "action": "extract",
+      "description": "I can see the member detail page. Extracting savings balance.",
+      "outcome": "success",
+      "url": "http://127.0.0.1:5000/member/12345"
+    }
+  ]
+}

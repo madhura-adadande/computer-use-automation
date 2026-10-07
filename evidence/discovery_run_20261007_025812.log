@@ -1,0 +1,88 @@
+{
+  "goal": "look up member 12345 and read their current savings balance",
+  "timestamp": "20261007_025812",
+  "mode": "mock",
+  "steps": [
+    {
+      "step": 1,
+      "action": "type",
+      "thought": "I see a login page. I need to enter credentials.",
+      "locator": {
+        "strategy": "name",
+        "value": "username"
+      },
+      "value": "officer",
+      "url": "http://127.0.0.1:5000/",
+      "checkpoint": ""
+    },
+    {
+      "step": 2,
+      "action": "type",
+      "thought": "Now I enter the password.",
+      "locator": {
+        "strategy": "name",
+        "value": "password"
+      },
+      "value": "[REDACTED]",
+      "url": "http://127.0.0.1:5000/",
+      "checkpoint": ""
+    },
+    {
+      "step": 3,
+      "action": "click",
+      "thought": "Click the Log On button to submit credentials.",
+      "locator": {
+        "strategy": "css",
+        "value": "input[type=submit]"
+      },
+      "value": "",
+      "url": "http://127.0.0.1:5000/",
+      "checkpoint": "member id"
+    },
+    {
+      "step": 4,
+      "action": "type",
+      "thought": "I am on the search page. I will enter the member ID.",
+      "locator": {
+        "strategy": "name",
+        "value": "member_id"
+      },
+      "value": "12345",
+      "url": "http://127.0.0.1:5000/search",
+      "checkpoint": ""
+    },
+    {
+      "step": 5,
+      "action": "click",
+      "thought": "Click Search to find the member.",
+      "locator": {
+        "strategy": "css",
+        "value": "input[type=submit]"
+      },
+      "value": "",
+      "url": "http://127.0.0.1:5000/search",
+      "checkpoint": "member information"
+    },
+    {
+      "step": 6,
+      "action": "extract",
+      "thought": "I can see the member detail page. Extracting savings balance.",
+      "locator": {
+        "strategy": "css",
+        "value": "#balance-SAV-001"
+      },
+      "value": "",
+      "url": "http://127.0.0.1:5000/member/12345",
+      "checkpoint": ""
+    },
+    {
+      "step": 7,
+      "action": "done",
+      "thought": "Goal complete. Member found and balance extracted.",
+      "locator": {},
+      "value": "",
+      "url": "http://127.0.0.1:5000/member/12345",
+      "checkpoint": ""
+    }
+  ]
+}
