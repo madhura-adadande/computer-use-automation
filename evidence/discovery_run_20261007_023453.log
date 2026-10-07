@@ -1,0 +1,6 @@
+{
+  "goal": "look up member 12345 and read their current savings balance",
+  "timestamp": "20261007_023453",
+  "mode": "mock",
+  "steps": []
+}

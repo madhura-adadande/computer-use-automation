@@ -1,0 +1,42 @@
+﻿allowlist:
+  domains:
+    - "127.0.0.1:5000"
+    - "localhost:5000"
+  allowed_routes:
+    - "/"
+    - "/search"
+    - "/member/*"
+    - "/member/*/new-account"
+    - "/logout"
+  allowed_actions:
+    - navigate
+    - click
+    - type
+    - select
+    - wait
+    - assert
+    - extract
+    - screenshot
+
+safety:
+  risky_actions:
+    - type: "form_submit"
+      routes: ["/member/*/new-account"]
+      policy: "require_confirmation"
+    - type: "navigate"
+      routes: ["*"]
+      policy: "check_allowlist"
+  irreversible_actions:
+    - "confirm_subaccount"
+  redact_fields:
+    - "password"
+    - "ssn"
+    - "account_number"
+    - "token"
+    - "secret"
+
+escalation:
+  max_steps: 20
+  max_retries: 3
+  stuck_threshold: 3
+  timeout_seconds: 30

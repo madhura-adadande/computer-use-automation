@@ -1,0 +1,129 @@
+{
+  "id": "d5761c4e-de48-40e2-9f59-305751725bee",
+  "name": "look_up_member_12345_and_read_their_current_saving",
+  "description": "look up member 12345 and read their current savings balance",
+  "version": "1.0.0",
+  "status": "draft",
+  "target_url": "http://127.0.0.1:5000",
+  "tenant_id": "default",
+  "created_at": "2026-10-07T02:39:01.382595",
+  "inputs": [],
+  "outputs": [
+    {
+      "name": "savings_balance",
+      "type": "string",
+      "description": "savings_balance",
+      "extract_from": "savings_balance"
+    }
+  ],
+  "steps": [
+    {
+      "step_id": 1,
+      "action": "type",
+      "description": "I see a login page. I need to enter credentials.",
+      "locator": {
+        "strategy": "name",
+        "value": "username",
+        "fallbacks": [],
+        "description": "I see a login page. I need to enter credentials."
+      },
+      "value": "officer",
+      "param_ref": null,
+      "extract_as": null,
+      "checkpoint": null,
+      "timeout_ms": 5000,
+      "on_error": "fail"
+    },
+    {
+      "step_id": 2,
+      "action": "type",
+      "description": "Now I enter the password.",
+      "locator": {
+        "strategy": "name",
+        "value": "password",
+        "fallbacks": [],
+        "description": "Now I enter the password."
+      },
+      "value": "pass123",
+      "param_ref": null,
+      "extract_as": null,
+      "checkpoint": null,
+      "timeout_ms": 5000,
+      "on_error": "fail"
+    },
+    {
+      "step_id": 3,
+      "action": "click",
+      "description": "Click the Log On button to submit credentials.",
+      "locator": {
+        "strategy": "css",
+        "value": "input[type=submit]",
+        "fallbacks": [],
+        "description": "Click the Log On button to submit credentials."
+      },
+      "value": "",
+      "param_ref": null,
+      "extract_as": null,
+      "checkpoint": "member id",
+      "timeout_ms": 5000,
+      "on_error": "fail"
+    },
+    {
+      "step_id": 4,
+      "action": "type",
+      "description": "I am on the search page. I will enter the member ID.",
+      "locator": {
+        "strategy": "name",
+        "value": "member_id",
+        "fallbacks": [],
+        "description": "I am on the search page. I will enter the member ID."
+      },
+      "value": "12345",
+      "param_ref": null,
+      "extract_as": null,
+      "checkpoint": null,
+      "timeout_ms": 5000,
+      "on_error": "fail"
+    },
+    {
+      "step_id": 5,
+      "action": "click",
+      "description": "Click Search to find the member.",
+      "locator": {
+        "strategy": "css",
+        "value": "input[type=submit]",
+        "fallbacks": [],
+        "description": "Click Search to find the member."
+      },
+      "value": "",
+      "param_ref": null,
+      "extract_as": null,
+      "checkpoint": "member information",
+      "timeout_ms": 5000,
+      "on_error": "fail"
+    },
+    {
+      "step_id": 6,
+      "action": "extract",
+      "description": "I can see the member detail page. Extracting savings balance.",
+      "locator": {
+        "strategy": "css",
+        "value": "#balance-SAV-001",
+        "fallbacks": [],
+        "description": "I can see the member detail page. Extracting savings balance."
+      },
+      "value": "",
+      "param_ref": null,
+      "extract_as": "savings_balance",
+      "checkpoint": null,
+      "timeout_ms": 5000,
+      "on_error": "fail"
+    }
+  ],
+  "success_condition": "Goal completed successfully",
+  "tags": [
+    "agent-recorded",
+    "mock"
+  ],
+  "allowlist": []
+}
