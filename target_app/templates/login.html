@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>CreditCore Back-Office Login</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #d4d0c8; margin: 0; padding: 0; }
+        .titlebar { background: #003580; color: white; padding: 4px 8px; font-size: 12px; }
+        .window { width: 420px; margin: 80px auto; background: #ece9d8; border: 2px solid #7a96df; }
+        .window-title { background: linear-gradient(to right, #0a246a, #a6b5da); color: white; padding: 6px 10px; font-size: 13px; font-weight: bold; }
+        .content { padding: 24px 32px; }
+        h2 { font-size: 14px; color: #003580; border-bottom: 1px solid #999; padding-bottom: 6px; }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 6px 4px; font-size: 13px; }
+        input[type=text], input[type=password] { width: 180px; border: 1px solid #7f9db9; padding: 3px; font-size: 13px; }
+        .btn { background: #ece9d8; border: 1px solid #7f9db9; padding: 4px 16px; font-size: 13px; cursor: pointer; }
+        .error { color: red; font-size: 12px; margin-top: 8px; }
+        .footer { font-size: 10px; color: #666; text-align: center; border-top: 1px solid #999; padding: 8px; margin-top: 16px; }
+    </style>
+</head>
+<body>
+    <div class="titlebar">CreditCore Servicing Platform v4.2.1 - Internal Use Only</div>
+    <div class="window">
+        <div class="window-title">Member Services Login</div>
+        <div class="content">
+            <h2>Staff Authentication</h2>
+            <form method="POST" action="/">
+                <table>
+                    <tr><td>Username:</td><td><input type="text" name="username" id="username" /></td></tr>
+                    <tr><td>Password:</td><td><input type="password" name="password" id="password" /></td></tr>
+                    <tr><td></td><td><input type="submit" class="btn" value="Log On" /></td></tr>
+                </table>
+                {% if error %}<div class="error">{{ error }}</div>{% endif %}
+            </form>
+            <div class="footer">Unauthorized access is prohibited. CreditCore 2003-2026</div>
+        </div>
+    </div>
+</body>
+</html>
