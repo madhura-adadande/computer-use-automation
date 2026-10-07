@@ -1,0 +1,13 @@
+{
+  "id": "intervention_20261007_024825",
+  "timestamp": "2026-10-07T02:48:25.633545",
+  "goal": "look up member 99999 and read their current savings balance",
+  "stuck_at_step": 6,
+  "reason": "Locator.inner_text: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator(\"#balance-SAV-001\").first\n",
+  "current_url": "http://127.0.0.1:5000/search",
+  "current_page_title": "CreditCore Member Search",
+  "screenshot": "evidence/screenshots/20261007_024825_stuck.png",
+  "status": "pending",
+  "human_actions": [],
+  "resumed_at": null
+}

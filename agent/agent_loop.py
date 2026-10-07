@@ -1,57 +1,49 @@
 ﻿import json
 import os
+import re
 from datetime import datetime
 from playwright.sync_api import sync_playwright
 from agent.screenshot import take_screenshot, get_page_state
 from artifact.schema import Capability, ActionStep, ActionType, Locator, LocatorStrategy, InputParam, OutputField
 from artifact.store import save_capability
-from guardrails.allowlist import check_action
 from guardrails.redactor import safe_log
 from escalation.escalation_manager import check_escalation, create_intervention_request
 
 MAX_STEPS = 20
 
-MOCK_SCRIPTS = {
-    "lookup_member": [
-        {"thought": "I see a login page. I need to enter credentials.", "action": "type", "locator": {"strategy": "name", "value": "username"}, "value": "officer", "checkpoint": "", "done": False, "escalate": False},
-        {"thought": "Now I enter the password.", "action": "type", "locator": {"strategy": "name", "value": "password"}, "value": "pass123", "checkpoint": "", "done": False, "escalate": False},
-        {"thought": "Click the Log On button to submit credentials.", "action": "click", "locator": {"strategy": "css", "value": "input[type=submit]"}, "value": "", "checkpoint": "member id", "done": False, "escalate": False},
-        {"thought": "I am on the search page. I will enter the member ID.", "action": "type", "locator": {"strategy": "name", "value": "member_id"}, "value": "MEMBER_ID_PLACEHOLDER", "checkpoint": "", "done": False, "escalate": False},
-        {"thought": "Click Search to find the member.", "action": "click", "locator": {"strategy": "css", "value": "input[type=submit]"}, "value": "", "checkpoint": "member information", "done": False, "escalate": False},
-        {"thought": "I can see the member detail page. Extracting savings balance.", "action": "extract", "locator": {"strategy": "css", "value": "#balance-SAV-001"}, "value": "", "extract_as": "savings_balance", "checkpoint": "", "done": False, "escalate": False},
-        {"thought": "Goal complete. Member found and balance extracted.", "action": "done", "locator": {}, "value": "", "checkpoint": "", "done": True, "escalate": False},
-    ],
-    "create_subaccount": [
-        {"thought": "I see a login page. Entering credentials.", "action": "type", "locator": {"strategy": "name", "value": "username"}, "value": "officer", "checkpoint": "", "done": False, "escalate": False},
-        {"thought": "Entering password.", "action": "type", "locator": {"strategy": "name", "value": "password"}, "value": "pass123", "checkpoint": "", "done": False, "escalate": False},
-        {"thought": "Clicking Log On.", "action": "click", "locator": {"strategy": "css", "value": "input[type=submit]"}, "value": "", "checkpoint": "member id", "done": False, "escalate": False},
-        {"thought": "Entering member ID in search.", "action": "type", "locator": {"strategy": "name", "value": "member_id"}, "value": "MEMBER_ID_PLACEHOLDER", "checkpoint": "", "done": False, "escalate": False},
-        {"thought": "Clicking Search.", "action": "click", "locator": {"strategy": "css", "value": "input[type=submit]"}, "value": "", "checkpoint": "member information", "done": False, "escalate": False},
-        {"thought": "On member detail page. Clicking Open New Sub-Account.", "action": "click", "locator": {"strategy": "text", "value": "Open New Sub-Account"}, "value": "", "checkpoint": "account details", "done": False, "escalate": False},
-        {"thought": "Selecting account type Savings.", "action": "select", "locator": {"strategy": "name", "value": "account_type"}, "value": "Savings", "checkpoint": "", "done": False, "escalate": False},
-        {"thought": "Entering initial deposit amount.", "action": "type", "locator": {"strategy": "name", "value": "initial_deposit"}, "value": "100.00", "checkpoint": "", "done": False, "escalate": False},
-        {"thought": "Clicking Continue to proceed to confirmation.", "action": "click", "locator": {"strategy": "css", "value": "input[type=submit]"}, "value": "", "checkpoint": "please confirm", "done": False, "escalate": False},
-        {"thought": "On confirmation screen. Clicking Confirm.", "action": "click", "locator": {"strategy": "css", "value": "#confirm-btn"}, "value": "", "checkpoint": "successfully created", "done": False, "escalate": False},
-        {"thought": "Sub-account successfully created. Goal complete.", "action": "done", "locator": {}, "value": "", "checkpoint": "", "done": True, "escalate": False},
-    ]
-}
+def extract_member_id(goal: str) -> str:
+    match = re.search(r'\b(\d{5})\b', goal)
+    return match.group(1) if match else "12345"
 
-def get_mock_script(goal: str, member_id: str = "12345") -> list:
+def get_mock_script(goal: str, member_id: str) -> list:
     goal_lower = goal.lower()
     if "sub-account" in goal_lower or "subaccount" in goal_lower or "new account" in goal_lower:
-        script = MOCK_SCRIPTS["create_subaccount"]
+        return [
+            {"thought": "I see a login page. Entering credentials.", "action": "type", "locator": {"strategy": "name", "value": "username"}, "value": "officer", "checkpoint": "", "done": False, "escalate": False},
+            {"thought": "Entering password.", "action": "type", "locator": {"strategy": "name", "value": "password"}, "value": "pass123", "checkpoint": "", "done": False, "escalate": False},
+            {"thought": "Clicking Log On.", "action": "click", "locator": {"strategy": "css", "value": "input[type=submit]"}, "value": "", "checkpoint": "member id", "done": False, "escalate": False},
+            {"thought": "Entering member ID in search.", "action": "type", "locator": {"strategy": "name", "value": "member_id"}, "value": member_id, "checkpoint": "", "done": False, "escalate": False},
+            {"thought": "Clicking Search.", "action": "click", "locator": {"strategy": "css", "value": "input[type=submit]"}, "value": "", "checkpoint": "member information", "done": False, "escalate": False},
+            {"thought": "On member detail page. Clicking Open New Sub-Account.", "action": "click", "locator": {"strategy": "text", "value": "Open New Sub-Account"}, "value": "", "checkpoint": "account details", "done": False, "escalate": False},
+            {"thought": "Selecting account type Savings.", "action": "select", "locator": {"strategy": "name", "value": "account_type"}, "value": "Savings", "checkpoint": "", "done": False, "escalate": False},
+            {"thought": "Entering initial deposit amount.", "action": "type", "locator": {"strategy": "name", "value": "initial_deposit"}, "value": "100.00", "checkpoint": "", "done": False, "escalate": False},
+            {"thought": "Clicking Continue to proceed to confirmation.", "action": "click", "locator": {"strategy": "css", "value": "input[type=submit]"}, "value": "", "checkpoint": "please confirm", "done": False, "escalate": False},
+            {"thought": "On confirmation screen. Clicking Confirm.", "action": "click", "locator": {"strategy": "css", "value": "#confirm-btn"}, "value": "", "checkpoint": "successfully created", "done": False, "escalate": False},
+            {"thought": "Sub-account successfully created. Goal complete.", "action": "done", "locator": {}, "value": "", "checkpoint": "", "done": True, "escalate": False},
+        ]
     else:
-        script = MOCK_SCRIPTS["lookup_member"]
-    result = []
-    for step in script:
-        s = dict(step)
-        if s.get("value") == "MEMBER_ID_PLACEHOLDER":
-            s["value"] = member_id
-        result.append(s)
-    return result
+        return [
+            {"thought": "I see a login page. I need to enter credentials.", "action": "type", "locator": {"strategy": "name", "value": "username"}, "value": "officer", "checkpoint": "", "done": False, "escalate": False},
+            {"thought": "Now I enter the password.", "action": "type", "locator": {"strategy": "name", "value": "password"}, "value": "pass123", "checkpoint": "", "done": False, "escalate": False},
+            {"thought": "Click the Log On button to submit credentials.", "action": "click", "locator": {"strategy": "css", "value": "input[type=submit]"}, "value": "", "checkpoint": "member id", "done": False, "escalate": False},
+            {"thought": "I am on the search page. I will enter the member ID.", "action": "type", "locator": {"strategy": "name", "value": "member_id"}, "value": member_id, "checkpoint": "", "done": False, "escalate": False},
+            {"thought": "Click Search to find the member.", "action": "click", "locator": {"strategy": "css", "value": "input[type=submit]"}, "value": "", "checkpoint": "member information", "done": False, "escalate": False},
+            {"thought": "I can see the member detail page. Extracting savings balance.", "action": "extract", "locator": {"strategy": "css", "value": "#balance-SAV-001"}, "value": "", "extract_as": "savings_balance", "checkpoint": "", "done": False, "escalate": False},
+            {"thought": "Goal complete. Member found and balance extracted.", "action": "done", "locator": {}, "value": "", "checkpoint": "", "done": True, "escalate": False},
+        ]
 
 def run_agent(goal: str, target_url: str, inputs: dict = {}, tenant_id: str = "default") -> dict:
-    member_id = inputs.get("member_id", "12345")
+    member_id = inputs.get("member_id", extract_member_id(goal))
     history = []
     recorded_steps = []
     extracted_outputs = {}
@@ -60,7 +52,8 @@ def run_agent(goal: str, target_url: str, inputs: dict = {}, tenant_id: str = "d
 
     print(f"\n[AGENT] Starting: {goal}")
     print(f"[AGENT] Target: {target_url}")
-    print(f"[AGENT] Mode: MOCK (LLM responses simulated)\n")
+    print(f"[AGENT] Mode: MOCK (LLM responses simulated)")
+    print(f"[AGENT] Member ID: {member_id}\n")
 
     mock_script = get_mock_script(goal, member_id)
 
@@ -72,7 +65,6 @@ def run_agent(goal: str, target_url: str, inputs: dict = {}, tenant_id: str = "d
 
         for step_num, action_json in enumerate(mock_script, 1):
             state = get_page_state(page)
-
             thought = action_json.get("thought", "")
             action = action_json.get("action", "")
             locator = action_json.get("locator", {})
@@ -85,13 +77,9 @@ def run_agent(goal: str, target_url: str, inputs: dict = {}, tenant_id: str = "d
             print(f"[AGENT] Step {step_num}: {action} | {thought[:80]}")
 
             log_entry = safe_log({
-                "step": step_num,
-                "action": action,
-                "thought": thought,
-                "locator": locator,
-                "value": log_value,
-                "url": state["url"],
-                "checkpoint": checkpoint
+                "step": step_num, "action": action, "thought": thought,
+                "locator": locator, "value": log_value,
+                "url": state["url"], "checkpoint": checkpoint
             })
             log_entries.append(log_entry)
             history.append(log_entry)
@@ -123,8 +111,17 @@ def run_agent(goal: str, target_url: str, inputs: dict = {}, tenant_id: str = "d
                 elif action == "extract":
                     el = find_element(page, locator)
                     if el and extract_as:
-                        extracted_outputs[extract_as] = el.inner_text().strip()
-                        print(f"[EXTRACT] {extract_as} = {extracted_outputs[extract_as]}")
+                        extracted_text = el.inner_text().strip()
+                        extracted_outputs[extract_as] = extracted_text
+                        print(f"[EXTRACT] {extract_as} = {extracted_text}")
+                    else:
+                        page_text = page.inner_text("body")
+                        if "locked" in page_text.lower():
+                            print(f"[BUSINESS OUTCOME] Member {member_id} account is locked")
+                            extracted_outputs["error"] = f"Member {member_id} account is locked"
+                        elif "no member found" in page_text.lower():
+                            print(f"[BUSINESS OUTCOME] Member {member_id} not found")
+                            extracted_outputs["error"] = f"Member {member_id} not found"
 
                 if action not in ["navigate", "wait", "done"]:
                     recorded_steps.append(ActionStep(
@@ -149,9 +146,8 @@ def run_agent(goal: str, target_url: str, inputs: dict = {}, tenant_id: str = "d
                 stuck = check_escalation(history)
                 if stuck:
                     intervention = create_intervention_request(
-                        goal=goal, step=step_num,
-                        reason=str(e), state=state,
-                        screenshot=take_screenshot(page, "stuck")
+                        goal=goal, step=step_num, reason=str(e),
+                        state=state, screenshot=take_screenshot(page, "stuck")
                     )
                     browser.close()
                     return {"status": "escalated", "intervention": intervention, "log": log_entries}
